@@ -1,6 +1,6 @@
 # LLM Router and Cost Optimizer
 ## Summary
-This project is in exploration in LLM optimization, specifically Open AI model gpt-5-mini. Deployed through Microsoft Foundry, the goal was to learn how to take the base models we are provided with and optimize them in 3 key ways. 
+This project is in exploration in LLM optimization, specifically Open AI model gpt-5-mini. Deployed through Microsoft Foundry, the goal was to learn how to take the base models we are provided with and optimize them in 2 key ways. 
 
 ## Outline
 ### 1. Token Utilization
