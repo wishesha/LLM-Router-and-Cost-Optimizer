@@ -7,6 +7,7 @@ load_dotenv()
 endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 api_key = os.getenv("AZURE_OPENAI_API_KEY")
 deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
+summary_deployment = os.getenv("AZURE_OPENAI_SUMMARY_DEPLOYMENT_NAME")
 
 client = AzureOpenAI(
     azure_endpoint=endpoint,
@@ -14,7 +15,7 @@ client = AzureOpenAI(
     api_version="2024-10-21"
 )
 
-MAX_RESPONSE_TOKENS = 800
+MAX_RESPONSE_TOKENS = 1500
 MAX_SUMMARY_TOKENS = 400
 MAX_WINDOW = 4
 running_summary = ""
@@ -41,7 +42,7 @@ while True:
         }
     
     model_context = [system_instructions] + recent_history
-    print("Message count in history: {len(chat_history)}\nMessage count sent to AI: {len(model_context)}\n")
+    print(f"Message count in history: {len(chat_history)}\nMessage count sent to AI: {len(model_context)}\n")
 
     response = client.chat.completions.create(
         model = deployment,
@@ -51,11 +52,13 @@ while True:
     )
 
     reply = response.choices[0].message.content
+    print(f"[DEBUG] Router selected underlying model: {response.model}\n")
+
     finish_reason = response.choices[0].finish_reason
 
     print(f"Assistant: {reply}")
     if finish_reason == "length":
-        print(f"\nResponse could not be completed because it reached max completion tokens")
+        print(f"\nResponse could not be completed because it reached max completion tokens.")
 
     chat_history.append({"role": "assistant", "content": reply})
 
@@ -64,10 +67,10 @@ while True:
     text_to_summarize = ""
     if dropped_messages:
         for message in dropped_messages[-2:]:
-            text_to_summarize += f"{message['role']}: {message['content']}\n"
+            text_to_summarize += f"{message['role']}: {message['content']}\n" 
 
         summary_response = client.chat.completions.create(
-            model = deployment,
+            model = summary_deployment,
             messages = [
                 summary_system_instructions,
                 {"role": "user", "content": f"Running Summary: {running_summary}. New turn to summarize with it: {text_to_summarize}\n"}
@@ -81,6 +84,6 @@ while True:
         if new_summary and new_summary.strip():
             running_summary = new_summary
             
-        print(f"\n[DEBUG]\nRunning summary: {running_summary}")
+        print(f"\nRunning summary: {running_summary}")
 
     
